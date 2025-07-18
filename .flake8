@@ -1,0 +1,42 @@
+[flake8]
+# Flake8 配置文件
+# 代码风格检查配置
+
+# 最大行长度
+max-line-length = 88
+
+# 忽略的错误代码
+ignore = 
+    # E203: 切片中的空格
+    E203,
+    # W503: 二元运算符前的换行
+    W503,
+    # F401: 导入但未使用 (在__init__.py中常见)
+    F401,
+
+# 排除的目录
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .tox,
+    .coverage,
+    htmlcov,
+    *.pyc,
+    *.pyo,
+    *.pyd,
+    .cache,
+    .pytest_cache,
+    node_modules,
+
+# 每个文件的最大复杂度
+max-complexity = 10
+
+# 导入顺序检查
+import-order-style = google
+application-import-names = src

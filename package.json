@@ -1,0 +1,23 @@
+{
+  "name": "campus-talent-insight",
+  "version": "2.0.0",
+  "description": "一个基于FastAPI和现代前端技术的校园招聘数据分析平台，用于处理校园招聘签约名单Excel文件，实现数据解析、统计计算及可视化展示。",
+  "main": "main.py",
+  "scripts": {
+    "build-css": "npx tailwindcss -i ./src/input.css -o ./static/tailwind.min.css --minify",
+    "watch-css": "npx tailwindcss -i ./src/input.css -o ./static/tailwind.min.css --watch",
+    "dev": "python main.py",
+    "start": "python main.py",
+    "uv:dev": "uv run python main.py",
+    "uv:start": "uv sync && uv run python main.py",
+    "uv:install": "uv sync",
+    "setup": "uv sync && npm install && npm run build-css"
+  },
+  "keywords": ["fastapi", "data-analysis", "excel", "recruitment", "dashboard"],
+  "author": "Developer",
+  "license": "MIT",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.8",
+    "tailwindcss": "^4.1.8"
+  }
+}

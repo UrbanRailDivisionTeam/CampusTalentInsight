@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* 自定义样式 */
+:root {
+  --primary-color: #3B82F6;
+  --secondary-color: #8B5CF6;
+  --accent-color: #F97316;
+  --success-color: #10B981;
+  --warning-color: #F59E0B;
+  --danger-color: #EF4444;
+  --bg-color: #F9FAFB;
+  --text-color: #1F2937;
+  --card-bg: #FFFFFF;
+}
+
+body {
+  font-family: 'Noto Sans SC', 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.tab-active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.tab-inactive {
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+.tab-inactive:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.btn-hover:hover {
+  filter: brightness(110%);
+  transform: translateY(-1px);
+}
+
+.chart-container {
+  height: 300px;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

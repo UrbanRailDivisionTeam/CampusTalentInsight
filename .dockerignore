@@ -1,0 +1,116 @@
+# Python缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虚拟环境
+.venv/
+venv/
+ENV/
+env/
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git文件
+.git/
+.gitignore
+
+# 测试和覆盖率报告
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# MyPy缓存
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# 日志文件
+logs/*.log
+
+# 临时文件
+*.tmp
+*.temp
+
+# 文档
+README.md
+ARCHITECTURE.md
+*.md
+
+# 脚本文件
+scripts/
+start.bat
+start.ps1
+WINDOWS_SETUP.md
+
+# Node.js文件（如果有前端构建）
+node_modules/
+package.json
+package-lock.json
+tailwind.config.js
+
+# Docker文件
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 上传的文件（运行时生成）
+uploads/*
+!uploads/.gitkeep
+
+# 生成的报告（运行时生成）
+reports/*
+!reports/.gitkeep
+
+# 测试文件
+tests/
+pytest.ini
+
+# 示例数据文件
+*.xlsx
+*.xls
+*.csv
+
+# 环境配置文件
+.env
+.env.local
+.env.*.local

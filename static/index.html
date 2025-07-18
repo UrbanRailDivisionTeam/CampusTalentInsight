@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园招聘数据分析平台</title>
+    <link href="/static/favicon.ico" rel="icon" type="image/x-icon">
+    <link href="/static/tailwind.min.css" rel="stylesheet">
+    <link href="/static/fontawesome/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3B82F6;    /* 主色 - 蓝色 */
+            --secondary-color: #8B5CF6;  /* 次要色 - 紫色 */
+            --accent-color: #F97316;     /* 强调色 - 橙色 */
+            --success-color: #10B981;    /* 成功色 - 绿色 */
+            --warning-color: #F59E0B;    /* 警告色 - 黄色 */
+            --danger-color: #EF4444;     /* 危险色 - 红色 */
+            --bg-color: #F9FAFB;         /* 背景色 - 浅灰 */
+            --text-color: #1F2937;       /* 文本色 - 深灰 */
+            --card-bg: #FFFFFF;          /* 卡片背景 - 白色 */
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-content {
+            color: var(--text-color);
+        }
+        
+        .tab-active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .tab-inactive {
+            background-color: transparent;
+            color: var(--text-color);
+        }
+        
+        .tab-inactive:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .btn-hover:hover {
+            filter: brightness(110%);
+            transform: translateY(-1px);
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-white text-2xl mr-3"></i>
+                    <h1 class="text-white text-xl font-bold">校园招聘数据分析平台</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-white text-sm" id="currentTime"></span>
+                    <button id="logoutBtn" class="text-white hover:text-gray-200 transition-colors duration-300 flex items-center space-x-1">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>退出登录</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 标签页导航 -->
+        <div class="flex space-x-1 bg-white p-1 rounded-lg shadow-sm mb-4 border border-gray-200">
+            <button class="tab-btn flex-1 py-3 px-6 rounded-md font-medium transition-all duration-300 tab-active" 
+                    data-tab="upload">
+                <i class="fas fa-upload mr-2"></i>文件上传
+            </button>
+            <button class="tab-btn flex-1 py-3 px-6 rounded-md font-medium transition-all duration-300 tab-inactive" 
+                    data-tab="table">
+                <i class="fas fa-table mr-2"></i>数据表格
+            </button>
+            <button class="tab-btn flex-1 py-3 px-6 rounded-md font-medium transition-all duration-300 tab-inactive" 
+                    data-tab="chart">
+                <i class="fas fa-chart-pie mr-2"></i>图表看板
+            </button>
+        </div>
+        
+
+
+        <!-- 上传页面 -->
+        <div id="upload-tab" class="tab-content fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 文件上传表单 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <h2 class="text-2xl font-bold mb-6">
+                        <i class="fas fa-file-excel text-success-color mr-2"></i>Excel文件上传
+                    </h2>
+                    
+                    <form id="uploadForm" class="space-y-6 card-content">
+                        <!-- 文件选择 -->
+                        <div>
+                            <label class="block text-sm font-medium mb-2">
+                                选择Excel文件 <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="file" id="fileInput" accept=".xlsx,.xls" 
+                                       class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-primary-color hover:file:bg-blue-100 transition-all duration-300">
+                            </div>
+                            <p class="text-xs mt-1">支持 .xlsx 和 .xls 格式</p>
+                        </div>
+                        
+                        <!-- 情况说明 -->
+                        <div>
+                            <label class="block text-sm font-medium mb-2">
+                                情况说明 <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="description" rows="4" maxlength="500" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-color focus:border-transparent transition-all duration-300"
+                                    placeholder="请输入情况说明（500字以内）..."></textarea>
+                            <div class="flex justify-between text-xs mt-1">
+                                <span>必填字段，用于描述本次数据的背景信息</span>
+                                <span id="charCount">0/500</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 上传按钮 -->
+                        <button type="submit" id="uploadBtn" 
+                                style="background-color: var(--primary-color);" 
+                                class="w-full text-white py-3 px-6 rounded-md font-medium btn-hover focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i>上传并分析
+                        </button>
+                        
+
+                    </form>
+                    
+                    <!-- 上传进度 -->
+                    <div id="uploadProgress" class="hidden mt-4">
+                        <div class="bg-gray-200 rounded-full h-2">
+                            <div class="bg-primary-color h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p class="text-sm mt-2 text-center">正在处理文件...</p>
+                    </div>
+                </div>
+                
+                <!-- 上传历史 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">
+                            <i class="fas fa-history text-secondary-color mr-2"></i>上传历史
+                        </h2>
+                        <button id="clearHistoryBtn" 
+                                style="background-color: var(--danger-color);" 
+                                class="text-white px-3 py-1 rounded-md text-sm font-medium btn-hover focus:outline-none focus:ring-2 focus:ring-offset-2">
+                            <i class="fas fa-trash-alt mr-1"></i>清除历史
+                        </button>
+                    </div>
+                    
+                    <div id="historyList" class="space-y-3 card-content">
+                        <!-- 历史记录将在这里动态加载 -->
+                        <div class="text-center py-8">
+                            <i class="fas fa-inbox text-4xl mb-4 text-secondary-color opacity-50"></i>
+                            <p>暂无上传记录</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据表格页面 -->
+        <div id="table-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- 政治面貌统计 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-flag text-primary-color mr-2"></i>政治面貌统计
+                    </h3>
+                    <div class="overflow-x-auto card-content">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">政治面貌</th>
+                                    <th class="text-right py-2">人数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="politicalTable">
+                                <!-- 数据将在这里动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 性别统计 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-venus-mars text-secondary-color mr-2"></i>性别统计
+                    </h3>
+                    <div class="overflow-x-auto card-content">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">性别</th>
+                                    <th class="text-right py-2">人数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="genderTable">
+                                <!-- 数据将在这里动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 年龄分布 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-birthday-cake text-accent-color mr-2"></i>年龄分布
+                    </h3>
+                    <div class="overflow-x-auto card-content">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">出生年代</th>
+                                    <th class="text-right py-2">人数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ageTable">
+                                <!-- 数据将在这里动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 最高学历 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-graduation-cap text-primary-color mr-2"></i>最高学历
+                    </h3>
+                    <div class="overflow-x-auto card-content">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">最高学历</th>
+                                    <th class="text-right py-2">人数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="educationTable">
+                                <!-- 数据将在这里动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 院校类别 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-university text-secondary-color mr-2"></i>院校类别
+                    </h3>
+                    <div class="overflow-x-auto card-content">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">院校类别</th>
+                                    <th class="text-right py-2">人数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="institutionTable">
+                                <!-- 数据将在这里动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 专业分布 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-book text-accent-color mr-2"></i>专业分布
+                    </h3>
+                    <div class="overflow-x-auto card-content">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">专业类型</th>
+                                    <th class="text-right py-2">人数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="majorTable">
+                                <!-- 数据将在这里动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 籍贯统计 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card md:col-span-3 xl:col-span-3">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-map-marker-alt text-primary-color mr-2"></i>籍贯统计
+                    </h3>
+                    <div class="overflow-x-auto card-content max-h-96">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">省份</th>
+                                    <th class="text-right py-2">人数</th>
+                                    <th class="text-right py-2">百分比</th>
+                                </tr>
+                            </thead>
+                            <tbody id="provinceTable">
+                                <!-- 数据将在这里动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表看板页面 -->
+        <div id="chart-tab" class="tab-content hidden">
+            <!-- 顶部数字卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100">
+                            <i class="fas fa-calendar-alt text-primary-color text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium">统计日期</p>
+                            <p class="text-2xl font-bold" id="statisticsDate">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100">
+                            <i class="fas fa-users text-success-color text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium">签约人数</p>
+                            <p class="text-2xl font-bold" id="totalCount">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100">
+                            <i class="fas fa-handshake text-warning-color text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium">两方人数</p>
+                            <p class="text-2xl font-bold" id="bilateralCount">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover data-card">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-orange-100">
+                            <i class="fas fa-file-contract text-accent-color text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium">三方人数</p>
+                            <p class="text-2xl font-bold" id="trilateralCount">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 情况说明 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8 card-hover">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-info-circle text-primary-color mr-2"></i>情况说明
+                </h3>
+                <div class="bg-gray-50 rounded-lg p-4 card-content border border-gray-100">
+                    <p class="leading-relaxed" id="descriptionText">暂无数据</p>
+                </div>
+            </div>
+            
+            <!-- 基础分布图表区域（一行四个） -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+                <!-- 政治面貌饼图 -->
+                <div class="bg-white rounded-lg shadow-lg p-4 card-hover">
+                    <h3 class="text-base font-semibold mb-3">
+                        <i class="fas fa-flag text-primary-color mr-2"></i>政治面貌分布
+                    </h3>
+                    <div id="politicalChart" class="chart-container" style="height: 280px;"></div>
+                </div>
+                
+                <!-- 性别饼图 -->
+                <div class="bg-white rounded-lg shadow-lg p-4 card-hover">
+                    <h3 class="text-base font-semibold mb-3">
+                        <i class="fas fa-venus-mars text-secondary-color mr-2"></i>性别分布
+                    </h3>
+                    <div id="genderChart" class="chart-container" style="height: 280px;"></div>
+                </div>
+                
+                <!-- 年龄饼图 -->
+                <div class="bg-white rounded-lg shadow-lg p-4 card-hover">
+                    <h3 class="text-base font-semibold mb-3">
+                        <i class="fas fa-birthday-cake text-accent-color mr-2"></i>年龄分布
+                    </h3>
+                    <div id="ageChart" class="chart-container" style="height: 280px;"></div>
+                </div>
+                
+                <!-- 学历饼图 -->
+                <div class="bg-white rounded-lg shadow-lg p-4 card-hover">
+                    <h3 class="text-base font-semibold mb-3">
+                        <i class="fas fa-graduation-cap text-primary-color mr-2"></i>学历分布
+                    </h3>
+                    <div id="educationChart" class="chart-container" style="height: 280px;"></div>
+                </div>
+            </div>
+            
+            <!-- 柱状图区域 -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                <!-- 院校类别柱状图 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-university text-secondary-color mr-2"></i>院校类别分布
+                    </h3>
+                    <div id="institutionChart" class="chart-container"></div>
+                </div>
+                
+                <!-- 专业类型柱状图 -->
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-book text-accent-color mr-2"></i>专业类型分布
+                    </h3>
+                    <div id="majorChart" class="chart-container"></div>
+                </div>
+            </div>
+            
+            <!-- 籍贯柱状图（单独一行） -->
+            <div class="grid grid-cols-1 gap-8 mb-8">
+                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-map-marker-alt text-primary-color mr-2"></i>籍贯分布
+                    </h3>
+                    <div id="provinceChart" class="chart-container" style="height: 400px;"></div>
+                </div>
+            </div>
+            
+            <!-- 特殊文本展示 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover" style="margin-bottom: 30px !important;">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-star text-warning-color mr-2"></i>重点院校统计
+                </h3>
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 card-content border border-blue-100">
+                    <p class="text-gray-700 text-lg leading-relaxed" id="specialInstitutionsText">
+                        暂无数据
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 报告导出功能 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover" style="margin-top: 40px !important;">
+                <h3 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-file-export text-success-color mr-2"></i>报告导出
+                </h3>
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-100">
+                    <p class="text-gray-700 mb-4">生成包含所有图表和数据分析的完整报告</p>
+                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        <button id="generateHtmlBtn" 
+                                style="background-color: #3b82f6;" 
+                                class="text-white px-4 py-3 rounded-md font-medium btn-hover focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center w-full">
+                            <i class="fas fa-code mr-2"></i>生成HTML报告
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <button id="downloadReportBtn" 
+                                style="background-color: var(--primary-color);" 
+                                class="text-white px-4 py-3 rounded-md font-medium btn-hover focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center w-full disabled:opacity-50 disabled:cursor-not-allowed" 
+                                disabled>
+                            <i class="fas fa-download mr-2"></i>下载报告文件
+                        </button>
+                        <button id="previewReportBtn" 
+                                style="background-color: var(--secondary-color);" 
+                                class="text-white px-4 py-3 rounded-md font-medium btn-hover focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center w-full disabled:opacity-50 disabled:cursor-not-allowed" 
+                                disabled>
+                            <i class="fas fa-eye mr-2"></i>预览报告
+                        </button>
+                    </div>
+                    <div id="reportStatus" class="mt-4 hidden">
+                        <div class="bg-blue-100 border border-blue-300 rounded-lg p-3">
+                            <p class="text-blue-800 text-sm" id="reportStatusText">正在生成报告...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50"></div>
+
+    <!-- 加载中遮罩 -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-color"></div>
+            <span class="font-medium">正在处理数据...</span>
+        </div>
+    </div>
+
+    <!-- 引入ECharts -->
+    <script src="/static/echarts.min.js"></script>
+    
+    <script>
+        // 全局变量
+        let currentData = null;
+        let charts = {};
+        
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            
+            const bgColor = {
+                'success': 'bg-green-500',
+                'error': 'bg-red-500',
+                'warning': 'bg-yellow-500',
+                'info': 'bg-blue-500'
+            }[type];
+            
+            messageDiv.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg mb-2 transform translate-x-full transition-transform duration-300`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+            
+            // 动画显示
+            setTimeout(() => {
+                messageDiv.classList.remove('translate-x-full');
+            }, 100);
+            
+            // 自动隐藏
+            setTimeout(() => {
+                messageDiv.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (messageDiv.parentElement) {
+                        messageDiv.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+        
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // 标签页切换
+        function initTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+                    
+                    // 更新按钮状态
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('tab-active');
+                        btn.classList.add('tab-inactive');
+                    });
+                    button.classList.remove('tab-inactive');
+                    button.classList.add('tab-active');
+                    
+                    // 更新内容显示
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    const targetContent = document.getElementById(`${targetTab}-tab`);
+                    if (targetContent) {
+                        targetContent.classList.remove('hidden');
+                        targetContent.classList.add('fade-in');
+                        
+                        // 如果切换到图表页面，重新渲染图表
+                        if (targetTab === 'chart' && currentData) {
+                            setTimeout(() => {
+                                renderCharts(currentData);
+                            }, 100);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // 文件上传处理
+        function initUpload() {
+            const form = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            const description = document.getElementById('description');
+            const charCount = document.getElementById('charCount');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadProgress = document.getElementById('uploadProgress');
+            
+            // 字符计数
+            description.addEventListener('input', () => {
+                const count = description.value.length;
+                charCount.textContent = `${count}/500`;
+                
+                if (count > 500) {
+                    charCount.classList.add('text-red-500');
+                } else {
+                    charCount.classList.remove('text-red-500');
+                }
+            });
+            
+            // 表单提交
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const file = fileInput.files[0];
+                const desc = description.value.trim();
+                
+                // 验证
+                if (!file) {
+                    showMessage('请选择Excel文件', 'error');
+                    return;
+                }
+                
+                if (!desc) {
+                    showMessage('请填写情况说明', 'error');
+                    return;
+                }
+                
+                if (desc.length > 500) {
+                    showMessage('情况说明不能超过500字', 'error');
+                    return;
+                }
+                
+                // 显示进度
+                uploadBtn.disabled = true;
+                uploadProgress.classList.remove('hidden');
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('description', desc);
+                    
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        showMessage('文件上传成功！', 'success');
+                        
+                        // 重置表单
+                        form.reset();
+                        charCount.textContent = '0/500';
+                        
+                        // 加载统计数据
+                        await loadStatistics();
+                        
+                        // 更新历史记录
+                        await loadUploadHistory();
+                        
+                    } else {
+                        showMessage(result.detail || '上传失败', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showMessage('网络错误，请重试', 'error');
+                } finally {
+                    uploadBtn.disabled = false;
+                    uploadProgress.classList.add('hidden');
+                }
+            });
+        }
+        
+        // 加载上传历史
+        async function loadUploadHistory() {
+            try {
+                const response = await fetch('/api/upload-history');
+                const data = await response.json();
+                
+                const historyList = document.getElementById('historyList');
+                
+                if (data.history && data.history.length > 0) {
+                    historyList.innerHTML = data.history.map(record => `
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">${record.filename}</h4>
+                                    <p class="text-sm text-gray-600">记录数: ${record.record_count}</p>
+                                    <p class="text-xs text-gray-500">${record.upload_time}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>已处理
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    historyList.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-inbox text-4xl mb-4"></i>
+                            <p>暂无上传记录</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Load history error:', error);
+            }
+        }
+        
+        // 加载统计数据
+        async function loadStatistics() {
+            try {
+                showLoading();
+                
+                const response = await fetch('/api/statistics');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 验证数据格式
+                    if (!data) {
+                        throw new Error('返回的数据格式不正确');
+                    }
+                    
+                    currentData = data;
+                    
+                    // 更新数字卡片
+                    updateDigitalCards(data);
+                    
+                    // 更新表格
+                    updateTables(data);
+                    
+                    // 更新图表（如果当前在图表页面）
+                    const chartTab = document.getElementById('chart-tab');
+                    if (!chartTab.classList.contains('hidden')) {
+                        renderCharts(data);
+                    }
+                    
+
+                    
+                } else {
+                    const error = await response.json();
+                    showMessage(error.detail || '加载统计数据失败', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Load statistics error:', error);
+                showMessage('网络错误，请重试', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // 更新数字卡片
+        function updateDigitalCards(data) {
+            document.getElementById('statisticsDate').textContent = data.upload_time.split(' ')[0];
+            document.getElementById('totalCount').textContent = data.total_count.toLocaleString();
+            document.getElementById('bilateralCount').textContent = data.bilateral_count.toLocaleString();
+            document.getElementById('trilateralCount').textContent = data.trilateral_count.toLocaleString();
+            document.getElementById('descriptionText').textContent = data.description || '暂无说明';
+        }
+        
+        // 更新表格
+        function updateTables(data) {
+            // 政治面貌表格
+            const politicalTable = document.getElementById('politicalTable');
+            politicalTable.innerHTML = data.political_status.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-2">${item.name}</td>
+                    <td class="text-right py-2 font-medium">${item.count}</td>
+                </tr>
+            `).join('');
+            
+            // 性别表格
+            const genderTable = document.getElementById('genderTable');
+            genderTable.innerHTML = data.gender.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-2">${item.name}</td>
+                    <td class="text-right py-2 font-medium">${item.count}</td>
+                </tr>
+            `).join('');
+            
+            // 年龄表格
+            const ageTable = document.getElementById('ageTable');
+            ageTable.innerHTML = data.age_distribution.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-2">${item.name}</td>
+                    <td class="text-right py-2 font-medium">${item.count}</td>
+                </tr>
+            `).join('');
+            
+            // 学历表格
+            const educationTable = document.getElementById('educationTable');
+            educationTable.innerHTML = data.education.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-2">${item.name}</td>
+                    <td class="text-right py-2 font-medium">${item.count}</td>
+                </tr>
+            `).join('');
+            
+            // 院校类别表格
+            const institutionTable = document.getElementById('institutionTable');
+            institutionTable.innerHTML = data.institution_category.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-2">${item.name}</td>
+                    <td class="text-right py-2 font-medium">${item.count}</td>
+                </tr>
+            `).join('');
+            
+            // 专业表格
+            const majorTable = document.getElementById('majorTable');
+            majorTable.innerHTML = data.major_type.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-2">${item.name}</td>
+                    <td class="text-right py-2 font-medium">${item.count}</td>
+                </tr>
+            `).join('');
+            
+            // 籍贯表格
+            const provinceTable = document.getElementById('provinceTable');
+            provinceTable.innerHTML = data.province_distribution.map(item => `
+                <tr class="border-b border-gray-100">
+                    <td class="py-2">${item.name}</td>
+                    <td class="text-right py-2 font-medium">${item.count}</td>
+                    <td class="text-right py-2 text-gray-600">${item.percentage}%</td>
+                </tr>
+            `).join('');
+            
+            // 特殊院校文本
+            if (data.special_institutions) {
+                const specialInstitutions = data.special_institutions;
+                const specialText = `目前引进清华大学${specialInstitutions['清华大学'] || 0}人、北京大学${specialInstitutions['北京大学'] || 0}人、C9联盟${specialInstitutions['C9联盟'] || 0}人、同济大学${specialInstitutions['同济大学'] || 0}人、中南大学${specialInstitutions['中南大学'] || 0}人、北京交通大学${specialInstitutions['北京交通大学'] || 0}人、西南交通大学${specialInstitutions['西南交通大学'] || 0}人、兰州交大${specialInstitutions['兰州交通大学'] || 0}人、大连交大${specialInstitutions['大连交通大学'] || 0}人、华东交大${specialInstitutions['华东交通大学'] || 0}人`;
+                document.getElementById('specialInstitutionsText').textContent = specialText;
+            } else {
+                document.getElementById('specialInstitutionsText').textContent = '暂无特殊院校数据';
+            }
+        }
+        
+        // 渲染图表
+        function renderCharts(data) {
+            if (!data) {
+                console.error('没有数据可供渲染图表');
+                return;
+            }
+            
+            // 定义数据分析平台的专业配色方案
+            const dataColors = [
+                '#3B82F6', // 主色 - 蓝色
+                '#10B981', // 成功色 - 绿色
+                '#F59E0B', // 警告色 - 黄色
+                '#EF4444', // 危险色 - 红色
+                '#8B5CF6', // 紫色
+                '#EC4899', // 粉色
+                '#06B6D4', // 青色
+                '#6366F1', // 靛蓝色
+                '#F97316', // 橙色
+                '#14B8A6', // 蓝绿色
+                '#64748B', // 灰蓝色
+                '#9333EA'  // 深紫色
+            ];
+            
+            // 数据检查和默认值
+            const safeData = {
+                political_status: data.political_status || [],
+                gender: data.gender || [],
+                age_distribution: data.age_distribution || [],
+                education: data.education || [],
+                institution_category: data.institution_category || [],
+                major_type: data.major_type || [],
+                province_distribution: data.province_distribution || []
+            };
+            
+            // 饼图基础配置
+            const pieOption = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{b}: {c} ({d}%)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderColor: '#3B82F6',
+                    borderWidth: 1,
+                    textStyle: {
+                        color: '#1F2937'
+                    },
+                    padding: 10,
+                    extraCssText: 'box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);'
+                },
+                legend: {
+                    show: false
+                },
+                series: [{
+                    type: 'pie',
+                    radius: ['35%', '65%'],
+                    center: ['50%', '50%'],
+                    avoidLabelOverlap: true,
+                    itemStyle: {
+                        borderRadius: 4,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        position: 'outside',
+                        formatter: '{b}: {c}\n({d}%)',
+                        fontSize: 11,
+                        color: '#4B5563',
+                        lineHeight: 14
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 12,
+                            fontWeight: 'bold'
+                        },
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.2)'
+                        }
+                    },
+                    data: []
+                }],
+                color: dataColors
+            };
+            
+            // 柱状图配置
+            const barOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderColor: '#3B82F6',
+                    borderWidth: 1,
+                    textStyle: {
+                        color: '#1F2937'
+                    },
+                    padding: 10,
+                    extraCssText: 'box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [],
+                    axisLine: {
+                        lineStyle: {
+                            color: '#D1D5DB'
+                        }
+                    },
+                    axisTick: {
+                        alignWithLabel: true,
+                        lineStyle: {
+                            color: '#D1D5DB'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#4B5563',
+                        interval: 0,
+                        rotate: 30,
+                        formatter: function (value) {
+                            if (value.length > 8) {
+                                return value.substring(0, 8) + '...';
+                            }
+                            return value;
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        show: true,
+                        lineStyle: {
+                            color: '#D1D5DB'
+                        }
+                    },
+                    axisTick: {
+                        show: true,
+                        lineStyle: {
+                            color: '#D1D5DB'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#4B5563'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#E5E7EB',
+                            type: 'dashed'
+                        }
+                    }
+                },
+                series: [{
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: [],
+                    itemStyle: {
+                        borderRadius: [4, 4, 0, 0],
+                        color: function(params) {
+                            return dataColors[params.dataIndex % dataColors.length];
+                        }
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.2)'
+                        }
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        color: '#4B5563'
+                    }
+                }]
+            };
+            
+            // 初始化政治面貌图表
+            charts.political_status = echarts.init(document.getElementById('politicalChart'));
+            const politicalOption = JSON.parse(JSON.stringify(pieOption));
+            politicalOption.series[0].data = safeData.political_status.map(item => ({
+                name: item.name,
+                value: item.count
+            }));
+            charts.political_status.setOption(politicalOption);
+            
+            // 初始化性别图表
+            charts.gender = echarts.init(document.getElementById('genderChart'));
+            const genderOption = JSON.parse(JSON.stringify(pieOption));
+            genderOption.series[0].data = safeData.gender.map(item => ({
+                name: item.name,
+                value: item.count
+            }));
+            charts.gender.setOption(genderOption);
+            
+            // 初始化年龄图表
+            charts.age_distribution = echarts.init(document.getElementById('ageChart'));
+            const ageOption = JSON.parse(JSON.stringify(pieOption));
+            ageOption.series[0].data = safeData.age_distribution.map(item => ({
+                name: item.name,
+                value: item.count
+            }));
+            charts.age_distribution.setOption(ageOption);
+            
+            // 初始化学历图表
+            charts.education = echarts.init(document.getElementById('educationChart'));
+            const educationOption = JSON.parse(JSON.stringify(pieOption));
+            educationOption.series[0].data = safeData.education.map(item => ({
+                name: item.name,
+                value: item.count
+            }));
+            charts.education.setOption(educationOption);
+            
+            // 初始化院校类别图表
+            charts.institution_category = echarts.init(document.getElementById('institutionChart'));
+            const institutionOption = JSON.parse(JSON.stringify(barOption));
+            institutionOption.xAxis.data = safeData.institution_category.map(item => item.name);
+            institutionOption.series[0].data = safeData.institution_category.map(item => item.count);
+            charts.institution_category.setOption(institutionOption);
+            
+            // 初始化专业类型图表
+            charts.major_type = echarts.init(document.getElementById('majorChart'));
+            const majorOption = JSON.parse(JSON.stringify(barOption));
+            majorOption.xAxis.data = safeData.major_type.map(item => item.name);
+            majorOption.series[0].data = safeData.major_type.map(item => item.count);
+            charts.major_type.setOption(majorOption);
+            
+            // 初始化籍贯图表
+            charts.province_distribution = echarts.init(document.getElementById('provinceChart'));
+            const provinceOption = JSON.parse(JSON.stringify(barOption));
+            provinceOption.xAxis.data = safeData.province_distribution.map(item => item.name);
+            provinceOption.series[0].data = safeData.province_distribution.map(item => item.count);
+            charts.province_distribution.setOption(provinceOption);
+            
+            // 响应式调整图表大小
+            window.addEventListener('resize', function() {
+                Object.values(charts).forEach(chart => {
+                    chart.resize();
+                });
+            });
+        }
+        
+        // 清除历史数据
+        function clearUploadHistory() {
+            if (confirm('确定要清除所有上传历史记录吗？此操作不可恢复。')) {
+                showMessage('正在清除历史记录...', 'info');
+                
+                fetch('/api/clear-history', {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showMessage('历史记录已清除', 'success');
+                    loadUploadHistory(); // 重新加载（空的）历史记录
+                })
+                .catch(error => {
+                    console.error('清除历史记录失败:', error);
+                    showMessage('清除历史记录失败: ' + error, 'error');
+                });
+            }
+        }
+        
+
+        
+
+        
+
+        
+        // 自动加载最后一个上传文件的数据
+        function loadLatestFileData() {
+            fetch('/api/upload-history')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.history && data.history.length > 0) {
+                        // 获取最新的文件名
+                        const latestFile = data.history[0].filename;
+                        
+                        // 加载该文件的统计数据
+                        loadStatistics();
+                    }
+                })
+                .catch(error => {
+                    console.error('加载最新文件数据失败:', error);
+                });
+        }
+        
+        // 报告导出相关功能
+        let currentReportFilename = null;
+        
+        // 通用报告生成函数
+        function generateReportByType(reportType, apiEndpoint, buttonId, buttonText, iconClass) {
+            const generateBtn = document.getElementById(buttonId);
+            const downloadBtn = document.getElementById('downloadReportBtn');
+            const previewBtn = document.getElementById('previewReportBtn');
+            const statusDiv = document.getElementById('reportStatus');
+            const statusText = document.getElementById('reportStatusText');
+            
+            // 检查是否有数据
+            if (!currentData) {
+                showMessage('请先上传数据文件', 'error');
+                return;
+            }
+            
+            // 显示生成状态
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
+            statusDiv.classList.remove('hidden');
+            statusText.textContent = `正在生成${reportType}报告，请稍候...`;
+            
+            // 捕获所有图表的图片
+            const chartImages = {};
+            
+            // 为每个图表生成图片
+            Object.keys(charts).forEach(chartKey => {
+                if (charts[chartKey]) {
+                    try {
+                        const imageData = charts[chartKey].getDataURL({
+                            type: 'png',
+                            pixelRatio: 2,
+                            backgroundColor: '#fff'
+                        });
+                        // 移除data:image/png;base64,前缀
+                        chartImages[chartKey] = imageData.replace(/^data:image\/png;base64,/, '');
+                    } catch (error) {
+                        console.warn(`获取图表 ${chartKey} 图片失败:`, error);
+                    }
+                }
+            });
+            
+            // 调用后端API生成报告
+            fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chart_images: chartImages
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentReportFilename = data.filename;
+                    
+                    // 更新状态
+                    statusText.textContent = `${reportType}报告生成成功！文件名：${data.filename}`;
+                    statusDiv.querySelector('div').className = 'bg-green-100 border border-green-300 rounded-lg p-3';
+                    statusText.className = 'text-green-800 text-sm';
+                    
+                    // 启用下载和预览按钮
+                    downloadBtn.disabled = false;
+                    previewBtn.disabled = false;
+                    
+                    showMessage(`${reportType}报告生成成功`, 'success');
+                } else {
+                    throw new Error(data.message || `${reportType}报告生成失败`);
+                }
+            })
+            .catch(error => {
+                console.error(`生成${reportType}报告失败:`, error);
+                statusText.textContent = `${reportType}报告生成失败：${error.message}`;
+                statusDiv.querySelector('div').className = 'bg-red-100 border border-red-300 rounded-lg p-3';
+                statusText.className = 'text-red-800 text-sm';
+                showMessage(`${reportType}报告生成失败: ` + error.message, 'error');
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = `<i class="${iconClass} mr-2"></i>${buttonText}`;
+            });
+        }
+        
+        // 生成Markdown报告
+        function generateMarkdownReport() {
+            generateReportByType('Markdown', '/api/generate-report', 'generateMarkdownBtn', '生成Markdown报告', 'fas fa-file-alt');
+        }
+        
+        // 生成HTML报告
+        function generateHtmlReport() {
+            generateReportByType('HTML', '/api/generate-html-report', 'generateHtmlBtn', '生成HTML报告', 'fas fa-code');
+        }
+        
+        // 生成PDF报告
+        function generatePdfReport() {
+            generateReportByType('PDF', '/api/generate-pdf-report', 'generatePdfBtn', '生成PDF报告', 'fas fa-file-pdf');
+        }
+        
+        // 下载报告
+        function downloadReport() {
+            if (!currentReportFilename) {
+                showMessage('请先生成报告', 'error');
+                return;
+            }
+            
+            const downloadUrl = `/api/download-report/${currentReportFilename}`;
+            
+            // 创建隐藏的下载链接
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = currentReportFilename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showMessage('报告下载已开始', 'success');
+        }
+        
+        // 预览报告
+        function previewReport() {
+            if (!currentReportFilename) {
+                showMessage('请先生成报告', 'error');
+                return;
+            }
+            
+            // 在新窗口中打开报告文件
+            const previewUrl = `/api/download-report/${currentReportFilename}`;
+            window.open(previewUrl, '_blank');
+        }
+        
+        // 登出功能
+        async function logout() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    showMessage('已成功退出登录', 'success');
+                    // 延迟一秒后刷新页面，让用户看到成功消息
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showMessage('退出登录失败', 'error');
+                }
+            } catch (error) {
+                console.error('登出错误:', error);
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            initTabs();
+            initUpload();
+            loadUploadHistory();
+            
+            // 设置图表容器高度
+            document.querySelectorAll('.chart-container').forEach(container => {
+                container.style.height = '300px';
+            });
+            
+            // 绑定清除历史按钮事件
+            document.getElementById('clearHistoryBtn').addEventListener('click', clearUploadHistory);
+            
+            // 绑定报告导出按钮事件
+            document.getElementById('generateHtmlBtn').addEventListener('click', generateHtmlReport);
+            document.getElementById('downloadReportBtn').addEventListener('click', downloadReport);
+            document.getElementById('previewReportBtn').addEventListener('click', previewReport);
+            
+            // 绑定登出按钮事件
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            
+            // 自动加载最后一个上传文件的数据
+            loadLatestFileData();
+        });
+    </script>
+</body>
+</html>
